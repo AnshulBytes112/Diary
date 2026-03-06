@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../theme/app_colors.dart';
-import '../auth/sign_in_page.dart';
+import '../../firebase/auth_repo.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   static const routeName = '/profile';
+
+  Future<void> _signOut(BuildContext context) async {
+    await AuthRepo().signOut();
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,27 +71,22 @@ class ProfilePage extends StatelessWidget {
             _Tile(
               icon: Icons.manage_accounts_outlined,
               title: 'Edit profile',
-              onTap: () {},
+              onTap: () async {},
             ),
             _Tile(
               icon: Icons.lock_outline,
               title: 'Security',
-              onTap: () {},
+              onTap: () async {},
             ),
             _Tile(
               icon: Icons.palette_outlined,
               title: 'Appearance',
-              onTap: () {},
+              onTap: () async {},
             ),
             _Tile(
               icon: Icons.logout_rounded,
               title: 'Sign out',
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-                if (!context.mounted) return;
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(SignInPage.routeName, (_) => false);
-              },
+              onTap: () => _signOut(context),
             ),
           ],
         ),
@@ -103,14 +104,14 @@ class _Tile extends StatelessWidget {
 
   final IconData icon;
   final String title;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        onTap: onTap,
+        onTap: () async => await onTap(),
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

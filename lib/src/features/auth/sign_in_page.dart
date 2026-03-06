@@ -75,6 +75,35 @@ class _SignInPageState extends State<SignInPage>
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    if (_loading) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _loading = true);
+    try {
+      final cred = await AuthRepo().signInWithGoogle();
+      if (!mounted) return;
+      if (cred == null) {
+        setState(() => _loading = false);
+        return;
+      }
+      Navigator.of(context).pushReplacementNamed(DashboardPage.routeName);
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final msg = e.message ?? 'Google sign-in failed (${e.code})';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Google sign-in error: $e\n$st');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed. Try again or use email.')),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -162,7 +191,10 @@ class _SignInPageState extends State<SignInPage>
                 const SizedBox(height: 10),
                 GradientButton(
                   label: _loading ? 'Signing in…' : 'Sign in',
-                  onPressed: _loading ? () {} : _submit,
+                  onPressed: () {
+                    if (_loading) return;
+                    _submit();
+                  },
                 ),
                 const SizedBox(height: 18),
                 const DividerLabel(label: 'or continue with'),
@@ -173,7 +205,10 @@ class _SignInPageState extends State<SignInPage>
                       child: SocialButton(
                         icon: Icons.g_mobiledata,
                         label: 'Google',
-                        onPressed: () {},
+                        onPressed: () {
+                          if (_loading) return;
+                          _signInWithGoogle();
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),

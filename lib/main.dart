@@ -40,6 +40,7 @@ class MindfulDiaryApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
         routes: {
+          '/': (_) => const LandingPage(),
           SignUpPage.routeName: (_) => const SignUpPage(),
           SignInPage.routeName: (_) => const SignInPage(),
           ForgotPasswordPage.routeName: (_) => const ForgotPasswordPage(),
@@ -49,7 +50,7 @@ class MindfulDiaryApp extends StatelessWidget {
           SearchEntriesPage.routeName: (_) => const SearchEntriesPage(),
           ProfilePage.routeName: (_) => const ProfilePage(),
         },
-        home: const LandingPage(),
+        initialRoute: '/',
       ),
     );
   }

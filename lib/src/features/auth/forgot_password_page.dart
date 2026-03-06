@@ -52,20 +52,35 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Password reset link sent to $email'),
+          content: Text(
+            'Reset link sent to $email. Check your inbox and spam folder. '
+            'Use the same email you used to sign up.',
+          ),
+          duration: const Duration(seconds: 5),
         ),
       );
       Navigator.of(context).pop();
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      String message = 'Failed to send reset email.';
-      if (e.code == 'user-not-found') {
-        message = 'No user found for that email.';
-      } else if (e.code == 'invalid-email') {
-        message = 'That email address is not valid.';
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'No account found for this email. Use the address you signed up with.';
+          break;
+        case 'invalid-email':
+          message = 'Please enter a valid email address.';
+          break;
+        case 'invalid-credential':
+          message = 'Invalid request. Check the email and try again.';
+          break;
+        case 'too-many-requests':
+          message = 'Too many attempts. Please try again later.';
+          break;
+        default:
+          message = e.message ?? 'Failed to send reset email (${e.code}).';
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 4)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -101,7 +116,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
               ),
               const SizedBox(height: 6),
               Text(
-                'Enter your account email and we’ll send you a secure password reset link.',
+                'Use the exact email you used to sign up. We’ll send a reset link—check spam if you don’t see it.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 22),

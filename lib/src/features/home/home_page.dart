@@ -3,13 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../firebase/auth_repo.dart';
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   static const routeName = '/home';
 
   Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
+    await AuthRepo().signOut();
     if (context.mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/', (route) => false,
