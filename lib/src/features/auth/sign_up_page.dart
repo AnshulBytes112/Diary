@@ -1,6 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../theme/app_colors.dart';
+import '../dashboard/dashboard_page.dart';
+import '../../firebase/auth_repo.dart';
 import 'sign_in_page.dart';
 import 'widgets/auth_scaffold.dart';
 import 'widgets/gradient_button.dart';
@@ -28,6 +32,7 @@ class _SignUpPageState extends State<SignUpPage>
   bool _acceptTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -86,10 +91,28 @@ class _SignUpPageState extends State<SignUpPage>
       return;
     }
 
-    // Placeholder action. Replace with backend call.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created (demo).')),
-    );
+    setState(() => _loading = true);
+    try {
+      await AuthRepo().signUpWithEmail(
+        fullName: _fullName.text.trim(),
+        email: _email.text.trim(),
+        password: _password.text,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(DashboardPage.routeName);
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        debugPrint('FirebaseAuth signUp error: code=${e.code} message=${e.message}');
+      }
+      final msg = (e.message == null || e.message!.trim().isEmpty)
+          ? 'Sign up failed (${e.code})'
+          : '${e.message} (${e.code})';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -225,7 +248,10 @@ class _SignUpPageState extends State<SignUpPage>
                     onChanged: (v) => setState(() => _acceptTerms = v ?? false),
                   ),
                   const SizedBox(height: 16),
-                  GradientButton(label: 'Create account', onPressed: _submit),
+                  GradientButton(
+                    label: _loading ? 'Creating…' : 'Create account',
+                    onPressed: _loading ? () {} : _submit,
+                  ),
                   const SizedBox(height: 18),
                   const DividerLabel(label: 'or sign up with'),
                   const SizedBox(height: 14),

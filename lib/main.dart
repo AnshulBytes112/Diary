@@ -1,41 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart'; 
+
+import 'src/features/auth/forgot_password_page.dart';
+import 'src/features/auth/sign_in_page.dart';
+import 'src/features/auth/sign_up_page.dart';
+import 'src/features/dashboard/dashboard_page.dart';
+import 'src/features/profile/profile_page.dart';
+import 'src/features/search/search_entries_page.dart';
+import 'src/state/app_state.dart';
+import 'src/state/app_state_scope.dart';
+import 'src/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Firestore Web can hit INTERNAL assertion issues with persistence + pending writes.
+  // Disabling persistence keeps things stable for now (we can re-enable later).
+  FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: false);
   runApp(const MindfulDiaryApp());
 }
+
+final AppState _appState = AppState();
 
 class MindfulDiaryApp extends StatelessWidget {
   const MindfulDiaryApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mindful Diary',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6D4C41),
-          primary: const Color(0xFF5D4037),
-          surface: const Color(0xFFF5F5DC), // Cream background
-          onSurface: const Color(0xFF2D2D2D),
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF5F0E1), // Slightly warmer cream
-        textTheme: GoogleFonts.playfairDisplayTextTheme(
-          Theme.of(context).textTheme,
-        ).apply(
-          bodyColor: const Color(0xFF4E342E),
-          displayColor: const Color(0xFF3E2723),
-        ),
+    return AppStateScope(
+      appState: _appState,
+      child: MaterialApp(
+        title: 'Mindful Diary',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        routes: {
+          SignUpPage.routeName: (_) => const SignUpPage(),
+          SignInPage.routeName: (_) => const SignInPage(),
+          ForgotPasswordPage.routeName: (_) => const ForgotPasswordPage(),
+          DashboardPage.routeName: (_) => const DashboardPage(),
+          SearchEntriesPage.routeName: (_) => const SearchEntriesPage(),
+          ProfilePage.routeName: (_) => const ProfilePage(),
+        },
+        home: const LandingPage(),
       ),
-      home: const LandingPage(),
     );
   }
 }
@@ -48,7 +61,7 @@ class LandingPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(),
+          _buildAppBar(context),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -60,7 +73,7 @@ class LandingPage extends StatelessWidget {
                   const SizedBox(height: 32),
                   _buildHeroSection(),
                   const SizedBox(height: 48),
-                  _buildActionButtons(),
+                  _buildActionButtons(context),
                   const SizedBox(height: 64),
                   _buildDivider(),
                   const SizedBox(height: 64),
@@ -105,7 +118,7 @@ class LandingPage extends StatelessWidget {
                   const SizedBox(height: 80),
                   _buildTestimonialsSection(),
                   const SizedBox(height: 80),
-                  _buildFinalCTA(),
+                  _buildFinalCTA(context),
                   const SizedBox(height: 48),
                   _buildMoodDisplay(),
                   const SizedBox(height: 80),
@@ -118,7 +131,7 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
       floating: true,
       pinned: true,
@@ -151,7 +164,10 @@ class LandingPage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: TextButton(
-            onPressed: () {},
+            onPressed: () {
+              if (!context.mounted) return;
+              Navigator.of(context).pushNamed(SignUpPage.routeName);
+            },
             style: TextButton.styleFrom(
               backgroundColor: const Color(0xFF6D4C41),
               foregroundColor: Colors.white,
@@ -220,14 +236,17 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              if (!context.mounted) return;
+              Navigator.of(context).pushNamed(SignUpPage.routeName);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF5D4037),
               foregroundColor: Colors.white,
@@ -257,7 +276,10 @@ class LandingPage extends StatelessWidget {
           width: double.infinity,
           height: 56,
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              if (!context.mounted) return;
+              Navigator.of(context).pushNamed(SignInPage.routeName);
+            },
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF5D4037),
               side: const BorderSide(color: Color(0xFFD7CCC8), width: 2),
@@ -270,11 +292,14 @@ class LandingPage extends StatelessWidget {
               children: [
                 const Icon(Icons.visibility_outlined),
                 const SizedBox(width: 8),
-                Text(
-                  'See Demo',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Text(
+                    'I already have an account',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -436,7 +461,7 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFinalCTA() {
+  Widget _buildFinalCTA(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -494,7 +519,10 @@ class LandingPage extends StatelessWidget {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (!context.mounted) return;
+                Navigator.of(context).pushNamed(SignUpPage.routeName);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF5D4037),
                 foregroundColor: Colors.white,
@@ -523,7 +551,10 @@ class LandingPage extends StatelessWidget {
             width: double.infinity,
             height: 56,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (!context.mounted) return;
+                Navigator.of(context).pushNamed(SignInPage.routeName);
+              },
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF5D4037),
                 side: const BorderSide(color: Color(0xFFD7CCC8), width: 2),
@@ -705,7 +736,7 @@ class TestimonialCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
@@ -749,7 +780,7 @@ class TestimonialCard extends StatelessWidget {
                       color: const Color(0xFF3E2723),
                     ),
                   ),
-                  Text(
+            Text(
                     role,
                     style: GoogleFonts.inter(
                       fontSize: 13,
@@ -757,9 +788,9 @@ class TestimonialCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
         ],
       ),
     );

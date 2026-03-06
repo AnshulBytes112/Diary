@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../theme/app_colors.dart';
 import 'forgot_password_page.dart';
+import '../dashboard/dashboard_page.dart';
+import '../../firebase/auth_repo.dart';
 import 'sign_up_page.dart';
 import 'widgets/auth_scaffold.dart';
 import 'widgets/gradient_button.dart';
@@ -25,6 +29,7 @@ class _SignInPageState extends State<SignInPage>
   final _password = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -47,10 +52,27 @@ class _SignInPageState extends State<SignInPage>
     FocusManager.instance.primaryFocus?.unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Placeholder action. Replace with backend call.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Signed in (demo).')),
-    );
+    setState(() => _loading = true);
+    try {
+      await AuthRepo().signInWithEmail(
+        email: _email.text.trim(),
+        password: _password.text,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(DashboardPage.routeName);
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        debugPrint('FirebaseAuth signIn error: code=${e.code} message=${e.message}');
+      }
+      final msg = (e.message == null || e.message!.trim().isEmpty)
+          ? 'Sign in failed (${e.code})'
+          : '${e.message} (${e.code})';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -138,7 +160,10 @@ class _SignInPageState extends State<SignInPage>
                   ),
                 ),
                 const SizedBox(height: 10),
-                GradientButton(label: 'Sign in', onPressed: _submit),
+                GradientButton(
+                  label: _loading ? 'Signing in…' : 'Sign in',
+                  onPressed: _loading ? () {} : _submit,
+                ),
                 const SizedBox(height: 18),
                 const DividerLabel(label: 'or continue with'),
                 const SizedBox(height: 14),
