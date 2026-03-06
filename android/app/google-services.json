@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389586444254",
+    "project_id": "diarynote-fa32a",
+    "storage_bucket": "diarynote-fa32a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389586444254:android:657ade107aa7038e52474f",
+        "android_client_info": {
+          "package_name": "com.example.diary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk-POg2vaVjUms3E8MgLS-laH7qyE4i88"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

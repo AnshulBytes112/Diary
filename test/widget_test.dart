@@ -5,26 +5,29 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:diary/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Landing page smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const MindfulDiaryApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the title is present.
+    expect(find.text('Mindful Diary'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that the hero text is present.
+    expect(find.text('Your Personal\nTimeless Diary'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify main feature cards.
+    expect(find.text('Daily Journal'), findsOneWidget);
+    expect(find.text('Voice Entries'), findsOneWidget);
+    expect(find.text('Insights & Analytics'), findsOneWidget);
+
+    // Verify the "3 Simple Steps" section heading.
+    expect(find.text('Start Your Journey in 3\nSimple Steps'), findsOneWidget);
+
+    // Verify the final CTA button.
+    expect(find.text('Create Your Diary'), findsNWidgets(2)); // One in badge (if text matches) or final CTA
   });
 }
