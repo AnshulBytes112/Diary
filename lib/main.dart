@@ -44,6 +44,8 @@ class MindfulDiaryApp extends StatelessWidget {
           SignInPage.routeName: (_) => const SignInPage(),
           ForgotPasswordPage.routeName: (_) => const ForgotPasswordPage(),
           DashboardPage.routeName: (_) => const DashboardPage(),
+          TimelinePage.routeName: (_) => const TimelinePage(),
+          AnalyticsPage.routeName: (_) => const AnalyticsPage(),
           SearchEntriesPage.routeName: (_) => const SearchEntriesPage(),
           ProfilePage.routeName: (_) => const ProfilePage(),
         },
